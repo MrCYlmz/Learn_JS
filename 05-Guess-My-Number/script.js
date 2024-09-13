@@ -1,50 +1,80 @@
 "use strict";
-// console.log(document.querySelector(".message").textContent);
+let score;
+let highScore = 0;
+let selectedNumber;
+let endOfGame = false;
 
-// document.querySelector(".message").textContent = "🎉 Correct Number";
+const changeMessage = (msg) => {
+  document.querySelector(".message").textContent = msg;
+};
+const decreaseScore = () => {
+  score--;
+  document.querySelector(".score").textContent = score;
+};
+const changeBackgroundColor = (color) => {
+  document.querySelector("body").style.backgroundColor = color;
+};
 
-// console.log(document.querySelector(".guess").value);
-const scoreInit = 5;
-const messageInit = document.querySelector(".message").textContent;
-const backgroundColorInit =
-  document.querySelector("body").style.backgroundColor;
-let highScore = Number(document.querySelector(".highscore").textContent);
-document.querySelector(".score").textContent = scoreInit;
-let randomNumber = Math.trunc(Math.random() * 20) + 1;
-let score = scoreInit;
-document.querySelector(".check").addEventListener("click", function () {
-  const guess = Number(document.querySelector(".guess").value);
-  if (score > 0) {
-    if (!guess) {
-      document.querySelector(".message").textContent = "⛔ No number!";
-    } else if (guess === randomNumber) {
-      if (score > highScore) {
-        highScore = score;
-        document.querySelector(".highscore").textContent = score;
-      }
-      document.querySelector(".message").textContent = "🎉 Correct Number";
-      document.querySelector("body").style.backgroundColor = "#60b347";
-      document.querySelector(".number").textContent = guess;
-    } else if (guess < randomNumber) {
-      document.querySelector(".message").textContent = "⬆️ Too low";
-      score--;
-      document.querySelector(".score").textContent = score;
-    } else if (guess > randomNumber) {
-      document.querySelector(".message").textContent = "⬇️ Too high";
-      score--;
-      document.querySelector(".score").textContent = score;
-    }
-  } else {
-    document.querySelector(".message").textContent = "💣 You lost the game";
-    document.querySelector("body").style.backgroundColor = "#eb0808";
-  }
-});
-document.querySelector(".again").addEventListener("click", function () {
-  randomNumber = Math.trunc(Math.random() * 20) + 1;
-  score = scoreInit;
-  document.querySelector(".score").textContent = scoreInit;
-  document.querySelector("body").style.backgroundColor = backgroundColorInit;
-  document.querySelector(".message").textContent = messageInit;
+function initialSettings() {
+  endOfGame = false;
+  score = 5;
+  changeMessage("Start guessing...");
+  document.querySelector(".score").textContent = score;
+  changeBackgroundColor("#222");
+  selectedNumber = Math.trunc(Math.random() * 20) + 1;
+  document.querySelector(".guess").value = undefined;
   document.querySelector(".number").textContent = "?";
-  document.querySelector(".guess").value = "";
+  document.querySelector(".number").style.width = "15rem";
+}
+function loss() {
+  endOfGame = true;
+  changeMessage("You loss 😭");
+  changeBackgroundColor("#720606");
+}
+function falseGuess(guess) {
+  decreaseScore();
+  if (score <= 0) loss();
+  else {
+    const msg =
+      guess < selectedNumber
+        ? "Your guess is to low 📉"
+        : "Your guess is high 📈";
+    changeMessage(msg);
+  }
+}
+function trueGuess(guess) {
+  endOfGame = true;
+  if (score > highScore) {
+    highScore = score;
+    document.querySelector(".highscore").textContent = highScore;
+  }
+  changeMessage("You won 🎉🎉🎉");
+  changeBackgroundColor("#60b347");
+  document.querySelector(".number").textContent = guess;
+  document.querySelector(".number").style.width = "30rem";
+  endOfGame = true;
+}
+function outOfRangeGuess() {
+  changeMessage("Your guess can't be bigger than 20 or less than 1");
+}
+function submit() {
+  if (!endOfGame) {
+    const guess = Number(document.querySelector(".guess").value);
+    if (!guess)
+      changeMessage(
+        "Your input is empty please select a number between 1 and 20 "
+      );
+    else if (guess < 1 || guess > 20) outOfRangeGuess();
+    else if (guess === selectedNumber) trueGuess(guess);
+    else falseGuess(guess);
+  }
+}
+
+initialSettings();
+document.querySelector(".check").addEventListener("click", submit);
+document.querySelector(".again").addEventListener("click", initialSettings);
+document.querySelector(".guess").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") {
+    submit();
+  }
 });
